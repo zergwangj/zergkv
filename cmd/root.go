@@ -21,11 +21,11 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"net"
-	"log"
-	"google.golang.org/grpc"
-	"github.com/zergwangj/zergkv/service"
 	"github.com/zergwangj/zergkv/pb"
+	"github.com/zergwangj/zergkv/service"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 	"strings"
 )
 
@@ -35,7 +35,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "zergkv",
 	Short: "Distributed key value database in Go and Raft",
-	Long: `Distributed key value database in Go and Raft`,
+	Long:  `Distributed key value database in Go and Raft`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {

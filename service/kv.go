@@ -15,13 +15,13 @@
 package service
 
 import (
-	"github.com/zergwangj/zergkv/raft"
 	"context"
 	"github.com/zergwangj/zergkv/pb"
+	"github.com/zergwangj/zergkv/raft"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 	"time"
-	"log"
 )
 
 const (
@@ -29,9 +29,9 @@ const (
 )
 
 type Kv struct {
-	Raft 				*raft.Kv
-	PeersRaft2GrpcMap	map[string]string
-	LeaderGrpcAddr		string
+	Raft              *raft.Kv
+	PeersRaft2GrpcMap map[string]string
+	LeaderGrpcAddr    string
 }
 
 func NewKv(dir string, id string, addr string, peersRaftMap map[string]string, peersRaft2GrpcMap map[string]string) (*Kv, error) {
@@ -41,8 +41,8 @@ func NewKv(dir string, id string, addr string, peersRaftMap map[string]string, p
 	}
 
 	k := &Kv{
-		Raft: 				raftKv,
-		PeersRaft2GrpcMap: 	peersRaft2GrpcMap,
+		Raft:              raftKv,
+		PeersRaft2GrpcMap: peersRaft2GrpcMap,
 	}
 
 	go k.UpdateLeaderGrpcAddr()

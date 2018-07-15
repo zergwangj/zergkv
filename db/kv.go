@@ -15,19 +15,19 @@
 package db
 
 import (
-	"github.com/boltdb/bolt"
 	"fmt"
+	"github.com/boltdb/bolt"
 	"path/filepath"
 )
 
 const (
-	dbFile = "kv.db"
+	dbFile    = "kv.db"
 	kvsBucket = "kvsBucket"
 )
 
 type Kv struct {
-	Dir 		string
-	Db			*bolt.DB
+	Dir string
+	Db  *bolt.DB
 }
 
 func NewKv(dir string) (*Kv, error) {
@@ -51,9 +51,9 @@ func NewKv(dir string) (*Kv, error) {
 		return nil, err
 	}
 
-	k := &Kv {
-		Dir:		dir,
-		Db:  		db,
+	k := &Kv{
+		Dir: dir,
+		Db:  db,
 	}
 	return k, nil
 }

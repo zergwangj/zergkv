@@ -15,18 +15,18 @@
 package raft
 
 import (
-	"net"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
 	"github.com/hashicorp/raft"
 	"github.com/hashicorp/raft-boltdb"
-	"path/filepath"
-	"errors"
-	"time"
-	"encoding/json"
-	"io"
 	"github.com/zergwangj/zergkv/db"
+	"io"
 	"log"
+	"net"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 const (
@@ -34,18 +34,18 @@ const (
 )
 
 type Kv struct {
-	Dir 		string
-	Id 			string
-	Addr 		string
-	Peers		map[string]string
-	Raft 		*raft.Raft
-	Db 			*db.Kv
+	Dir   string
+	Id    string
+	Addr  string
+	Peers map[string]string
+	Raft  *raft.Raft
+	Db    *db.Kv
 }
 
 type Command struct {
-	Op  		string
-	Key 		[]byte
-	Val 		[]byte
+	Op  string
+	Key []byte
+	Val []byte
 }
 
 func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, error) {
@@ -81,7 +81,7 @@ func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, er
 	}
 
 	log.Printf("[INFO] zergkv: Cluster local server(RAFT): %s (%s)", config.LocalID, transport.LocalAddr())
-	configuration := raft.Configuration {
+	configuration := raft.Configuration{
 		Servers: []raft.Server{
 			{
 				ID:      config.LocalID,
@@ -94,8 +94,8 @@ func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, er
 		serverAddr, _ := raft.NewInmemTransport(raft.ServerAddress(addr))
 		log.Printf("[INFO] zergkv: Cluster peer server(RAFT): %s (%s)", serverId, serverAddr)
 		configuration.Servers = append(configuration.Servers, raft.Server{
-			ID:       serverId,
-			Address:  serverAddr,
+			ID:      serverId,
+			Address: serverAddr,
 		})
 	}
 
@@ -131,9 +131,9 @@ func (k *Kv) Set(key []byte, val []byte) error {
 	}
 
 	c := &Command{
-		Op:  	"SET",
-		Key: 	key,
-		Val: 	val,
+		Op:  "SET",
+		Key: key,
+		Val: val,
 	}
 
 	cmd, err := json.Marshal(c)
