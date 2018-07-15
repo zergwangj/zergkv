@@ -85,25 +85,10 @@ func (k *Kv) Get(key []byte) ([]byte, error) {
 }
 
 func (k *Kv) Set(key []byte, value []byte) error {
-	err := k.Db.View(func(tx *bolt.Tx) error {
+	err := k.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(kvsBucket))
 		if b != nil {
-			data := b.Get([]byte(key))
-			if data == nil {
-				return fmt.Errorf("key not found")
-			}
-			return nil
-		}
-		return fmt.Errorf("Bucket kv is not found")
-	})
-	if err != nil {
-		return err
-	}
-
-	err = k.Db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(kvsBucket))
-		if b != nil {
-			err = b.Put([]byte(key), value)
+			err := b.Put([]byte(key), value)
 			if err != nil {
 				return err
 			}

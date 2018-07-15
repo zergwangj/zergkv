@@ -16,8 +16,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -53,7 +52,7 @@ var rootCmd = &cobra.Command{
 
 		lis, err := net.Listen("tcp", advertiseAddr)
 		if err != nil {
-			log.Fatal("[ERROR] zergkv: Failed to listen: %v", err)
+			log.Fatalf("[ERROR] zergkv: Failed to listen: %v", err)
 		}
 		s := grpc.NewServer()
 
