@@ -34,42 +34,44 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "zergkv",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Distributed key value database in Go and Raft",
+	Long: `Distributed key value database in Go and Raft`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		dir, _ := cmd.Flags().GetString("dir")
-		id, _ := cmd.Flags().GetString("id")
-		host, _ := cmd.Flags().GetString("host")
-		grpcPort, _ := cmd.Flags().GetString("grpc_port")
-		raftPort, _ := cmd.Flags().GetString("raft_port")
+		serverName, _ := cmd.Flags().GetString("server_name")
+		workDir, _ := cmd.Flags().GetString("work_dir")
+		advertiseAddr, _ := cmd.Flags().GetString("advertise_addr")
+		clusterAddr, _ := cmd.Flags().GetString("cluster_addr")
 		peers, _ := cmd.Flags().GetStringSlice("peers")
 
-		lis, err := net.Listen("tcp", net.JoinHostPort(host, grpcPort))
+		log.Println("[INFO] zergkv: ==> Starting zergkv server...")
+		log.Printf("[INFO] zergkv: Server name: %s", serverName)
+		log.Printf("[INFO] zergkv: Work directory: %s", workDir)
+		log.Printf("[INFO] zergkv: Advertise address(GRPC): %s", advertiseAddr)
+		log.Printf("[INFO] zergkv: Cluster address(RAFT): %s", clusterAddr)
+
+		lis, err := net.Listen("tcp", advertiseAddr)
 		if err != nil {
-			log.Fatal("Failed to listen: %v", err)
+			log.Fatal("[ERROR] zergkv: Failed to listen: %v", err)
 		}
 		s := grpc.NewServer()
-		peersGrpcMap := make(map[string]string)
+
+		peersRaft2GrpcMap := make(map[string]string)
 		peersRaftMap := make(map[string]string)
+		log.Println("[INFO] zergkv: Peers: ")
 		for _, peer := range peers {
 			strs := strings.Split(peer, ":")
-			peerId, peerHost, peerGrpcPort, peerRaftPort := strs[0], strs[1], strs[2], strs[3]
-			peerIps, _ := net.LookupHost(peerHost)
-			for _, peerIp := range peerIps {
-				peersGrpcMap[net.JoinHostPort(peerIp, peerRaftPort)] = net.JoinHostPort(peerIp, peerGrpcPort)
-			}
-			peersRaftMap[peerId] = net.JoinHostPort(peerHost, peerRaftPort)
+			peerName, peerHost, peerGrpcPort, peerRaftPort := strs[0], strs[1], strs[2], strs[3]
+			log.Printf("[INFO] zergkv: ------ %s (HOST: %s GRPC: %s, RAFT: %s)", peerName, peerHost, peerGrpcPort, peerRaftPort)
+			grpcAddr := net.JoinHostPort(peerHost, peerGrpcPort)
+			raftAddr := net.JoinHostPort(peerHost, peerRaftPort)
+			peersRaft2GrpcMap[raftAddr] = grpcAddr
+			peersRaftMap[peerName] = raftAddr
 		}
-		srv, err := service.NewKv(dir, id, net.JoinHostPort(host, raftPort), peersGrpcMap, peersRaftMap)
+		srv, err := service.NewKv(workDir, serverName, clusterAddr, peersRaftMap, peersRaft2GrpcMap)
 		if err != nil {
-			log.Fatal("Failed to create kv serivce")
+			log.Fatalf("[ERROR] zergkv: Failed to create kv serivce: %s", err.Error())
 		}
 		pb.RegisterKvServer(s, srv)
 		s.Serve(lis)
@@ -96,12 +98,11 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().String("dir", "", "Work directory")
-	rootCmd.Flags().String("id", "zkv", "Server identifier")
-	rootCmd.Flags().String("host", "", "Server listen host")
-	rootCmd.Flags().String("grpc_port", "5354", "Grpc port")
-	rootCmd.Flags().String("raft_port", "5355", "Raft port")
-	rootCmd.Flags().StringSlice("peers", nil, "Cluster peer servers")
+	rootCmd.Flags().String("server_name", "", "Server name")
+	rootCmd.Flags().String("work_dir", "", "Work directory")
+	rootCmd.Flags().String("advertise_addr", "", "Advertise address")
+	rootCmd.Flags().String("cluster_addr", "", "Cluster address")
+	rootCmd.Flags().StringSlice("peers", nil, "Peers")
 }
 
 // initConfig reads in config file and ENV variables if set.

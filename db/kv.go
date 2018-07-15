@@ -17,6 +17,7 @@ package db
 import (
 	"github.com/boltdb/bolt"
 	"fmt"
+	"path/filepath"
 )
 
 const (
@@ -30,7 +31,7 @@ type Kv struct {
 }
 
 func NewKv(dir string) (*Kv, error) {
-	db, err := bolt.Open(dir + dbFile, 0600, nil)
+	db, err := bolt.Open(filepath.Join(dir, dbFile), 0600, nil)
 	if err != nil {
 		return nil, err
 	}

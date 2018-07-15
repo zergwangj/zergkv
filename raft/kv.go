@@ -80,6 +80,7 @@ func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, er
 		return nil, errors.New(fmt.Sprintf("Failed to create Raft system: %s", err.Error()))
 	}
 
+	log.Printf("[INFO] zergkv: Cluster local server(RAFT): %s (%s)", config.LocalID, transport.LocalAddr())
 	configuration := raft.Configuration {
 		Servers: []raft.Server{
 			{
@@ -91,6 +92,7 @@ func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, er
 	for id, addr := range peers {
 		serverId := raft.ServerID(id)
 		serverAddr, _ := raft.NewInmemTransport(raft.ServerAddress(addr))
+		log.Printf("[INFO] zergkv: Cluster peer server(RAFT): %s (%s)", serverId, serverAddr)
 		configuration.Servers = append(configuration.Servers, raft.Server{
 			ID:       serverId,
 			Address:  serverAddr,
@@ -99,7 +101,7 @@ func NewKv(dir string, id string, addr string, peers map[string]string) (*Kv, er
 
 	future := raftKv.BootstrapCluster(configuration)
 	if future.Error() != nil {
-		return nil, future.Error()
+		log.Printf("[DEBUG] zergkv: Boostrap cluster failed: %s", future.Error())
 	}
 
 	k.Dir = dir
