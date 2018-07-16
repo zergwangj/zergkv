@@ -26,6 +26,9 @@ import (
 	"net"
 	"os"
 	"strings"
+	"context"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"net/http"
 )
 
 var cfgFile string
@@ -40,6 +43,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName, _ := cmd.Flags().GetString("server_name")
 		workDir, _ := cmd.Flags().GetString("work_dir")
+		restfulAddr, _ := cmd.Flags().GetString("restful_addr")
 		advertiseAddr, _ := cmd.Flags().GetString("advertise_addr")
 		clusterAddr, _ := cmd.Flags().GetString("cluster_addr")
 		peers, _ := cmd.Flags().GetStringSlice("peers")
@@ -47,6 +51,7 @@ var rootCmd = &cobra.Command{
 		log.Println("[INFO] zergkv: ==> Starting zergkv server...")
 		log.Printf("[INFO] zergkv: Server name: %s", serverName)
 		log.Printf("[INFO] zergkv: Work directory: %s", workDir)
+		log.Printf("[INFO] zergkv: Restful address(HTTP): %s", restfulAddr)
 		log.Printf("[INFO] zergkv: Advertise address(GRPC): %s", advertiseAddr)
 		log.Printf("[INFO] zergkv: Cluster address(RAFT): %s", clusterAddr)
 
@@ -70,9 +75,22 @@ var rootCmd = &cobra.Command{
 		}
 		srv, err := service.NewKv(workDir, serverName, clusterAddr, peersRaftMap, peersRaft2GrpcMap)
 		if err != nil {
-			log.Fatalf("[ERROR] zergkv: Failed to create kv serivce: %s", err.Error())
+			log.Fatalf("[ERROR] zergkv: Failed to create kv service: %s", err.Error())
 		}
+		defer srv.Close()
 		pb.RegisterKvServer(s, srv)
+
+		ctx := context.Background()
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		mux := runtime.NewServeMux()
+		opts := []grpc.DialOption{grpc.WithInsecure()}
+		err = pb.RegisterKvHandlerFromEndpoint(ctx, mux, advertiseAddr, opts)
+		if err != nil {
+			log.Fatalf("[ERROR] zergkv: Failed to create kv gateway: %s", err.Error())
+		}
+
+		go http.ListenAndServe(restfulAddr, mux)
 		s.Serve(lis)
 	},
 }
@@ -99,6 +117,7 @@ func init() {
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Flags().String("server_name", "", "Server name")
 	rootCmd.Flags().String("work_dir", "", "Work directory")
+	rootCmd.Flags().String("restful_addr", "", "Restful address")
 	rootCmd.Flags().String("advertise_addr", "", "Advertise address")
 	rootCmd.Flags().String("cluster_addr", "", "Cluster address")
 	rootCmd.Flags().StringSlice("peers", nil, "Peers")

@@ -50,6 +50,10 @@ func NewKv(dir string, id string, addr string, peersRaftMap map[string]string, p
 	return k, nil
 }
 
+func (k *Kv) Close() {
+	k.Raft.Close()
+}
+
 func (k *Kv) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
 	rsp := new(pb.GetResponse)
 
@@ -108,18 +112,6 @@ func (k *Kv) Delete(ctx context.Context, req *pb.DeleteRequest) (*pb.DeleteRespo
 	defer conn.Close()
 	c := pb.NewKvClient(conn)
 	return c.Delete(context.Background(), req)
-}
-
-func (k *Kv) Join(ctx context.Context, req *pb.JoinRequest) (*pb.JoinResponse, error) {
-	rsp := new(pb.JoinResponse)
-
-	err := k.Raft.Join(req.NodeId, req.NodeAddr)
-	if err != nil {
-		rsp.Error = err.Error()
-		return rsp, nil
-	}
-	rsp.Error = ""
-	return rsp, nil
 }
 
 func (k *Kv) UpdateLeaderGrpcAddr() {

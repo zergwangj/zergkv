@@ -5,14 +5,16 @@ services:
     volumes:
       - C:/Users/jim/data/zergkv-1:/data/zergkv
     restart: always
-    expose:
+    ports:
       - 5353
       - 5354
+      - 8080
     networks:
       - app_net
     command:
       - --server_name=zergkv-1
       - --work_dir=/data/zergkv
+      - --restful_addr=zergkv-1:8080
       - --advertise_addr=zergkv-1:5353
       - --cluster_addr=zergkv-1:5354
       - --peers=zergkv-2:zergkv-2:5353:5354,zergkv-3:zergkv-3:5353:5354
@@ -22,14 +24,16 @@ services:
     volumes:
       - C:/Users/jim/data/zergkv-2:/data/zergkv
     restart: always
-    expose:
+    ports:
       - 5353
       - 5354
+      - 8080
     networks:
       - app_net
     command:
       - --server_name=zergkv-2
       - --work_dir=/data/zergkv
+      - --restful_addr=zergkv-2:8080
       - --advertise_addr=zergkv-2:5353
       - --cluster_addr=zergkv-2:5354
       - --peers=zergkv-1:zergkv-1:5353:5354,zergkv-3:zergkv-3:5353:5354
@@ -39,14 +43,16 @@ services:
     volumes:
       - C:/Users/jim/data/zergkv-3:/data/zergkv
     restart: always
-    expose:
+    ports:
       - 5353
       - 5354
+      - 8080
     networks:
       - app_net
     command:
       - --server_name=zergkv-3
       - --work_dir=/data/zergkv
+      - --restful_addr=zergkv-3:8080
       - --advertise_addr=zergkv-3:5353
       - --cluster_addr=zergkv-3:5354
       - --peers=zergkv-1:zergkv-1:5353:5354,zergkv-2:zergkv-2:5353:5354

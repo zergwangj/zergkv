@@ -2,11 +2,26 @@ syntax = "proto3";
 
 package pb;
 
+import "google/api/annotations.proto";
+
 // The kv service definition.
 service Kv {
-  rpc Get (GetRequest) returns (GetResponse) {}
-  rpc Set (SetRequest) returns (SetResponse) {}
-  rpc Delete (DeleteRequest) returns (DeleteResponse) {}
+  rpc Get (GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/v1/kv/{key}"
+    };
+  }
+  rpc Set (SetRequest) returns (SetResponse) {
+    option (google.api.http) = {
+      put: "/v1/kv"
+      body: "*"
+    };
+  }
+  rpc Delete (DeleteRequest) returns (DeleteResponse) {
+    option (google.api.http) = {
+        delete: "/v1/kv/{key}"
+    };
+  }
 }
 
 message GetRequest {
