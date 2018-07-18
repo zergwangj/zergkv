@@ -48,6 +48,21 @@ var rootCmd = &cobra.Command{
 		clusterAddr, _ := cmd.Flags().GetString("cluster_addr")
 		peers, _ := cmd.Flags().GetStringSlice("peers")
 
+		logo := `
+ _______  _______  _______  _______  _                
+/ ___   )(  ____ \(  ____ )(  ____ \| \    /\|\     /|
+\/   )  || (    \/| (    )|| (    \/|  \  / /| )   ( |
+    /   )| (__    | (____)|| |      |  (_/ / | |   | |
+   /   / |  __)   |     __)| | ____ |   _ (  ( (   ) )
+  /   /  | (      | (\ (   | | \_  )|  ( \ \  \ \_/ / 
+ /   (_/\| (____/\| ) \ \__| (___) ||  /  \ \  \   /  
+(_______/(_______/|/   \__/(_______)|_/    \/   \_/
+	`
+		logFlags := log.Flags()
+		logFlags |= log.Lshortfile
+		log.SetFlags(0)
+		log.Print(logo)
+		log.SetFlags(logFlags)
 		log.Println("[INFO] zergkv: ==> Starting zergkv server...")
 		log.Printf("[INFO] zergkv: Server name: %s", serverName)
 		log.Printf("[INFO] zergkv: Work directory: %s", workDir)
